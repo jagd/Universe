@@ -19,4 +19,4 @@ clean:
 	-rm *.hi *.o space
 
 distclean: clean
-	-rm -r doc
+	-rm -r doc *.prof *.hp
