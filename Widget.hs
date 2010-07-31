@@ -14,7 +14,9 @@ main= do
      window <- windowNew
      canvas <- drawingAreaNew
      set window [windowTitle := "The Space",
-                 windowDefaultWidth := 640,
+                 -- windowDefaultWidth := 640,
+                 -- windowDefaultHeight := 480,
+                 windowDefaultWidth := 480,
                  windowDefaultHeight := 480,
                  containerBorderWidth := 5,
                  containerChild := canvas
@@ -41,6 +43,6 @@ doExpose widget global = do -- IO Monad
       (nW, nH) <- widgetGetSize widget
       let (fW,fH) = (realToFrac nW, realToFrac nH)
       -- ruf `drawSpace` vom Modul Space auf
-      render <- drawSpace global fW fH
+      render <- drawSpace global fW fH 
       renderWithDrawable drawWindow render
       return True
