@@ -74,17 +74,19 @@ s4 = Sphere {
      mass   = 0.01^3
 }
 
-drawSpace :: IORef Space -> Double -> Double -> IO (Render ())
-drawSpace refSpace width height = do -- IO Monad
-    space <- readIORef refSpace
+-- spaceNext :: IO ()
+spaceNext refSpace = do
+    bRunning <- sRunning `liftM` readIORef refSpace
+    when ( bRunning == True ) $ modifyIORef refSpace refreshSpace
+
+drawSpace :: Space -> Double -> Double -> IO (Render ())
+drawSpace space width height = do -- IO Monad
     let balls = sSpheres space
     let render = flip map balls $ \s -> do -- Render Monad
           let (r, g, b) = colorRGB s
           setSourceRGB r g b
           arc (xCoord s) (yCoord s) (radius s) 0 (2*pi)
           fill
-
-    when (sRunning space == True) $ modifyIORef refSpace refreshSpace
 
     ---- DEBUG:
     -- dSpace <- readIORef refSpace

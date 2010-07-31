@@ -30,19 +30,25 @@ main= do
 
      onExpose canvas (\x -> doExpose canvas global)
 
-     timeoutAdd ( widgetQueueDraw canvas
+     -- timeoutAdd ( widgetQueueDraw canvas
+                  -- >> sRunning `liftM` readIORef global)
+                -- 50
+
+     timeoutAdd ( spaceNext global >> widgetQueueDraw canvas
                   >> sRunning `liftM` readIORef global)
                 50
 
      onDestroy window mainQuit
      mainGUI
 
+-- bNext entscheidet, ob der nächste Zustand gerechnet wird
 doExpose :: (WidgetClass w) => w -> IORef Space -> IO Bool
-doExpose widget global = do -- IO Monad
+doExpose widget refSpace = do -- IO Monad
+      space <- readIORef refSpace
       drawWindow <- widgetGetDrawWindow widget
       (nW, nH) <- widgetGetSize widget
       let (fW,fH) = (realToFrac nW, realToFrac nH)
       -- ruf `drawSpace` vom Modul Space auf
-      render <- drawSpace global fW fH 
+      render <- drawSpace space fW fH
       renderWithDrawable drawWindow render
       return True
