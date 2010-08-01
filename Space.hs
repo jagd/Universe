@@ -11,18 +11,21 @@ import Sphere
 timePerTick :: Int
 timePerTick = 10
 
+data SpaceStatus = SSRunning | SSCrashed | SSReady | SSPause
+     deriving (Show, Eq)
+
 data Space = Space {
+           sStatus     :: SpaceStatus,
            gravity     :: Double,
-           sRunning    :: Bool,
            sSpheres    :: [Sphere],
            sController :: Sphere,
            sTime       :: Int
      } deriving (Show)
 
 
-initSpace :: IO (IORef Space)
-initSpace = newIORef Space {
-                     sRunning = True,
+initSpace :: Space
+initSpace = Space {
+                     sStatus = SSRunning,
                      sController = mouse,
                      gravity = 0.007,
                      -- sSpheres = [s1, s2, s3, s4, s5],
@@ -40,8 +43,8 @@ updateController x y space = modifyIORef space $ \s ->
 
 spaceNext :: IORef Space -> IO ()
 spaceNext refSpace = do
-    bRunning <- sRunning `liftM` readIORef refSpace
-    if ( bRunning == True )
+    status <- sStatus `liftM` readIORef refSpace
+    if ( status == SSRunning )
       then do
            modifyIORef refSpace $ \space ->
                let g = gravity space
@@ -56,7 +59,7 @@ spaceNext refSpace = do
            let spheres = sSpheres space
            let c = sController space
            when (outBound spheres || collision (c:spheres)) $
-                modifyIORef refSpace $ \s -> s {sRunning = False}
+                modifyIORef refSpace $ \s -> s {sStatus = SSCrashed}
 
       else return ()
 
@@ -66,20 +69,34 @@ drawSpace space width height = do -- IO Monad
         let balls = sSpheres space
         let c = sController space
         let render = flip map (c:balls) drawSphere
-
-        return $ foldl' (>>) startDraw render >> endDraw
-        where startDraw = do
-                        save
-                        scale width height
-              endDraw   = do
-                        stroke
+        
+        return $ foldl' (>>) startDraw render >> drawTime >> drawStatus >> endDraw
+        where startDraw = do save >> scale width height
+              endDraw   = stroke >> restore
+              drawTime  = do
                         setSourceRGB 1 1 0
                         setFontSize 0.04
                         moveTo 0.01 0.05
                         let milliSec = sTime space
                         let (sec, csec) = (milliSec `div` 100) `divMod` 10
                         showText $ "Time  " ++ (show sec) ++ "." ++ (show $ csec)
-                        restore
+              drawStatus =
+                  case sStatus space of
+                       SSCrashed -> do
+                           setSourceRGBA 0 0 0 0.5
+                           rectangle 0 0 1 1
+                           fill
+                           setSourceRGB 1 0 0
+                           setFontSize 0.07
+                           moveTo 0.1 0.5
+                           showText "The Universe Crashed !"
+                           --
+                           setSourceRGB 1 1 0
+                           setFontSize 0.04
+                           moveTo 0.2 0.6
+                           showText "click anywhere to restart"
+                       _ -> return ()
+                         
 
 
 -- Spheres für Debugzweck
