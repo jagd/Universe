@@ -119,8 +119,7 @@ newSpeed xs = flip map xs $ \x ->
                      d  = sqrt d2
                      dax = gravity * (mass y) / d2 / d * (xCoord y - xCoord x)
                      day = gravity * (mass y) / d2 / d * (yCoord y - yCoord x)
-                 in
-                    case d2 of
+                 in case d2 of
                       0 -> (ax, ay)
                       _ -> (ax + dax, ay + day)
          in x { xSpeed = xSpeed x + dVx, ySpeed = ySpeed x + dVy}
