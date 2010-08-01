@@ -3,7 +3,9 @@ module Sphere (
        drawSphere,      
        newSpeeds1,
        newSpeeds,
-       newCoords
+       newCoords,
+       outBound,
+       collision
        ) where
 
 import Data.List
@@ -97,3 +99,26 @@ drawSphere s = do -- Render Monad
                 setSource pattern
         arc (xCoord s) (yCoord s) (radius s) 0 (2*pi)
         fill
+
+
+outBound :: [Sphere] -> Bool
+outBound xs = flip any xs $ \s ->
+    let (x,y) = (xCoord s, yCoord s)
+    in f x y
+    where f x y
+            | x <= 0 = True
+            | x >= 1 = True
+            | y <= 0 = True
+            | y >= 1 = True
+            | otherwise = False
+
+
+collision :: [Sphere] -> Bool
+collision [] = False
+collision (x:xs)
+    | collision xs == True = True
+    | otherwise = flip any xs $ \s -> collision' x s
+    where collision' a b =
+               if distance a b > radius a + radius b
+                 then False
+                 else True

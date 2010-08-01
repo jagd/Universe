@@ -41,15 +41,24 @@ updateController x y space = modifyIORef space $ \s ->
 spaceNext :: IORef Space -> IO ()
 spaceNext refSpace = do
     bRunning <- sRunning `liftM` readIORef refSpace
-    when ( bRunning == True ) $ modifyIORef refSpace $ \space ->
-        let g = gravity space
-        in space {
-            sSpheres = (newSpeeds1 g $ sController space)
-                          . newSpeeds g
-                          . newCoords
-                          $ (sSpheres space),
-            sTime = sTime space + timePerTick
-           }
+    if ( bRunning == True )
+      then do
+           modifyIORef refSpace $ \space ->
+               let g = gravity space
+               in space {
+                   sSpheres = (newSpeeds1 g $ sController space)
+                                 . newSpeeds g
+                                 . newCoords
+                                 $ (sSpheres space),
+                   sTime = sTime space + timePerTick
+                  }
+           space <- readIORef refSpace
+           let spheres = sSpheres space
+           let c = sController space
+           when (outBound spheres || collision (c:spheres)) $
+                modifyIORef refSpace $ \s -> s {sRunning = False}
+
+      else return ()
 
 
 drawSpace :: Space -> Double -> Double -> IO (Render ())
@@ -122,7 +131,7 @@ s4 = Sphere {
      yCoord = 0.5,
      radius = 0.01,
      xSpeed = -0.00,
-     ySpeed = 0.005,
+     ySpeed = 0.001,
      mass   = 0.01^3
 }
 
@@ -131,7 +140,7 @@ s5 = Sphere {
      xCoord = 0.7,
      yCoord = 0.7,
      radius = 0.01,
-     xSpeed = 0.005,
-     ySpeed = -0.001,
+     xSpeed = 0.001,
+     ySpeed = -0.0002,
      mass   = 0.01^3
 }
