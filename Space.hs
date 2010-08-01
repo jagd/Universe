@@ -3,6 +3,7 @@ module Space where
 import Data.IORef
 import Data.List
 import Control.Monad
+-- import Text.Printf
 
 import Graphics.Rendering.Cairo
 -- import Graphics.Rendering.Cairo.Matrix
@@ -12,19 +13,21 @@ import Graphics.Rendering.Cairo
 data Space = Space {
            sRunning    :: Bool,
            sSpheres    :: [Sphere],
-           sController :: Sphere
+           sController :: Sphere,
+           sTime       :: Int
      } deriving (Show)
 
 
 gravity :: Double
 gravity = 0.07
+timePerTick :: Int
+timePerTick = 50
 
 -- Alle Daten sind relativ, d.h. normiert auf eins !!
 data Sphere = Sphere {
      colorRGB  :: (Double, Double, Double),
      xCoord    :: Double,
      yCoord    :: Double,
-     -- der Radius ist relativ zu der Breite des Fensters !!!
      radius    :: Double,
      xSpeed    :: Double,
      ySpeed    :: Double,
@@ -37,7 +40,8 @@ initSpace = newIORef Space {
                      sRunning = True,
                      sController = mouse,
                      -- sSpheres = [s1, s2, s3, s4, s5]
-                     sSpheres = [s4, s5]
+                     sSpheres = [s4, s5],
+                     sTime = 0
                      }
 
 
@@ -142,24 +146,28 @@ drawSpace space width height = do -- IO Monad
         let c = sController space
         let render = flip map (c:balls) drawSphere
 
-        ---- DEBUG:
-        -- dSpace <- readIORef refSpace
-        -- putStrLn $ show dSpace
-
         return $ foldl' (>>) startDraw render >> endDraw
         where startDraw = do
                         save
                         scale width height
               endDraw   = do
-                        restore
                         stroke
+                        setSourceRGB 1 1 0
+                        setFontSize 0.04
+                        moveTo 0.01 0.05
+                        let milliSec = sTime space
+                        let (sec, csec) = (milliSec `div` 100) `divMod` 10
+                        showText $ "Time  " ++ (show sec) ++ "." ++ (show $ csec)
+                        restore
 
 
 
 refreshSpace :: Space -> Space
 refreshSpace space =
     space { sSpheres = ((influence $ sController space) . newSpeed . newCoord)
-                        (sSpheres space) }
+                        (sSpheres space),
+            sTime = sTime space + timePerTick
+          }
 
 -- Die Wirkung des `Controller`s
 influence :: Sphere -> [Sphere] -> [Sphere] 

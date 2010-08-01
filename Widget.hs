@@ -28,7 +28,7 @@ main= do
 
      onExpose canvas (\x -> doExpose canvas global)
 
-     flip timeoutAdd 50 $ do
+     flip timeoutAdd timePerTick $ do
                      (wWidth, wHeight) <- widgetGetSize canvas
                      (mX, mY) <- widgetGetPointer canvas
                      let (wWidth', wHeight') =
@@ -43,7 +43,7 @@ main= do
      onDestroy window mainQuit
      mainGUI
 
--- bNext entscheidet, ob der nächste Zustand gerechnet wird
+
 doExpose :: (WidgetClass w) => w -> IORef Space -> IO Bool
 doExpose widget refSpace = do -- IO Monad
       space <- readIORef refSpace
