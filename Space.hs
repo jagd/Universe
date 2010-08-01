@@ -9,7 +9,7 @@ import Graphics.Rendering.Cairo
 import Sphere
 
 timePerTick :: Int
-timePerTick = 50
+timePerTick = 10
 
 data Space = Space {
            gravity     :: Double,
@@ -24,9 +24,9 @@ initSpace :: IO (IORef Space)
 initSpace = newIORef Space {
                      sRunning = True,
                      sController = mouse,
-                     gravity = 0.7,
-                     sSpheres = [s1, s2, s3, s4, s5],
-                     -- sSpheres = [s4, s5],
+                     gravity = 0.007,
+                     -- sSpheres = [s1, s2, s3, s4, s5],
+                     sSpheres = [s4, s5],
                      sTime = 0
                      }
 
