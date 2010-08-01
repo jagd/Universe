@@ -10,8 +10,8 @@ import Graphics.Rendering.Cairo
 
 
 data Space = Space {
-           sRunning :: Bool,
-           sSpheres :: [Sphere]
+           sRunning    :: Bool,
+           sSpheres    :: [Sphere]
      } deriving (Show)
 
 
@@ -32,20 +32,20 @@ data Sphere = Sphere {
 
 
 initSpace :: IO (IORef Space)
-initSpace = newIORef Space {sRunning = True, sSpheres = [s1, s2, s3, s4]}
+initSpace = newIORef Space {sRunning = True, sSpheres = [s1, s2, s3, s4, s5]}
 
 s1 = Sphere {
      colorRGB = (1, 0, 0),
      xCoord = 0.5,
      yCoord = 0.5,
      radius = 0.05,
-     xSpeed = -0.0007,
-     ySpeed = -0.0004,
+     xSpeed = -0.0009,
+     ySpeed = 0.000,
      mass   = 0.05^3
 }
 
 s2 = Sphere {
-     colorRGB = (0, 1, 0),
+     colorRGB = (1, 1, 1),
      xCoord = 0.5,
      yCoord = 0.7,
      radius = 0.03,
@@ -70,7 +70,17 @@ s4 = Sphere {
      yCoord = 0.5,
      radius = 0.01,
      xSpeed = -0.00,
-     ySpeed = 0.007,
+     ySpeed = 0.005,
+     mass   = 0.01^3
+}
+
+s5 = Sphere {
+     colorRGB = (62/255, 224/255, 205/255),
+     xCoord = 0.7,
+     yCoord = 0.7,
+     radius = 0.01,
+     xSpeed = 0.005,
+     ySpeed = -0.001,
      mass   = 0.01^3
 }
 
@@ -84,7 +94,21 @@ drawSpace space width height = do -- IO Monad
     let balls = sSpheres space
     let render = flip map balls $ \s -> do -- Render Monad
           let (r, g, b) = colorRGB s
-          setSourceRGB r g b
+
+          withLinearPattern (xCoord s) (yCoord s - radius s)
+                            (xCoord s) (yCoord s + radius s)
+                            $ \pattern -> do
+                  patternAddColorStopRGBA pattern 0 r g b 1
+                  patternAddColorStopRGBA pattern 1 r g b 0.25
+                  setSource pattern
+          arc (xCoord s) (yCoord s) (radius s) 0 (2*pi)
+          fill
+
+          withRadialPattern (xCoord s) (yCoord s) 0 (xCoord s) (yCoord s) (radius s)
+              $ \pattern -> do
+                  patternAddColorStopRGBA pattern 0 r g b 1
+                  patternAddColorStopRGBA pattern 1 r g b 0
+                  setSource pattern
           arc (xCoord s) (yCoord s) (radius s) 0 (2*pi)
           fill
 
@@ -94,7 +118,9 @@ drawSpace space width height = do -- IO Monad
 
     return $ foldl' (>>) startDraw render >> endDraw
 
-    where startDraw = save >> scale width height
+    where startDraw = do
+                    save
+                    scale width height
           endDraw   = restore >> stroke
 
 refreshSpace :: Space -> Space
@@ -109,7 +135,7 @@ newCoord ss = flip map (ss) $ \s ->
           vy = ySpeed s
     in s {xCoord = x + vx, yCoord = y + vy}
 
--- TODO: diese Funktion nochmal implemtieren
+-- TODO: diese Funktion muss nochmal implemtiert werden
 newSpeed :: [Sphere] -> [Sphere]
 newSpeed []      = []
 newSpeed xs = flip map xs $ \x ->

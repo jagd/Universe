@@ -14,10 +14,8 @@ main= do
      window <- windowNew
      canvas <- drawingAreaNew
      set window [windowTitle := "The Space",
-                 -- windowDefaultWidth := 640,
-                 -- windowDefaultHeight := 480,
-                 windowDefaultWidth := 480,
-                 windowDefaultHeight := 480,
+                 windowDefaultWidth := 600,
+                 windowDefaultHeight := 600,
                  containerBorderWidth := 5,
                  containerChild := canvas
                  ]
@@ -29,10 +27,6 @@ main= do
      global <- initSpace
 
      onExpose canvas (\x -> doExpose canvas global)
-
-     -- timeoutAdd ( widgetQueueDraw canvas
-                  -- >> sRunning `liftM` readIORef global)
-                -- 50
 
      timeoutAdd ( spaceNext global >> widgetQueueDraw canvas
                   >> sRunning `liftM` readIORef global)
