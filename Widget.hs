@@ -28,9 +28,17 @@ main= do
 
      onExpose canvas (\x -> doExpose canvas global)
 
-     timeoutAdd ( spaceNext global >> widgetQueueDraw canvas
-                  >> sRunning `liftM` readIORef global)
-                50
+     flip timeoutAdd 50 $ do
+                     (wWidth, wHeight) <- widgetGetSize canvas
+                     (mX, mY) <- widgetGetPointer canvas
+                     let (wWidth', wHeight') =
+                             (realToFrac wWidth, realToFrac wHeight)
+                     let (mX', mY') =
+                             (realToFrac mX, realToFrac mY)
+                     updateController (mX' / wWidth') (mY' / wHeight') global
+                     spaceNext global
+                     widgetQueueDraw canvas
+                     sRunning `liftM` readIORef global
 
      onDestroy window mainQuit
      mainGUI
