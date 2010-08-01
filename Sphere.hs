@@ -11,7 +11,7 @@ import Data.List
 import Graphics.Rendering.Cairo
 
 
--- Alle Daten sind relativ, d.h. normiert auf eins !!
+-- | Alle Daten sind relative Werte, d.h. normiert auf eins !!
 data Sphere = Sphere {
      colorRGB  :: (Double, Double, Double),
      xCoord    :: Double,
@@ -29,13 +29,14 @@ data Sphere = Sphere {
 distance2 :: Sphere -> Sphere -> Double
 distance2 x y = (xCoord x - xCoord y)^2 + (yCoord x - yCoord y)^2
 
+-- | Entfernung zwischen zwei `Sphere`
 distance :: Sphere -> Sphere -> Double
 distance x y = sqrt $ (xCoord x - xCoord y)^2 + (yCoord x - yCoord y)^2
 
--- Die Kraftwirkung des eine Kugel (z.B. die Mause -- der Regler) zu den anderen 
--- g: gravity
+-- | Die Kraftwirkung (Beschleunigungswirkung) des eine Kugel
+-- (z.B. die Mause -- der Regler) zu den anderen 
 newSpeeds1 :: Double -> Sphere -> [Sphere] -> [Sphere] 
-newSpeeds1 g c xs = flip map xs $ \x ->
+newSpeeds1 g c xs = flip map xs $ \x ->  -- g : gravity
          let (dVx, dVy) = calc c
              calc y =
                  let d2 = distance2 x y
@@ -49,7 +50,8 @@ newSpeeds1 g c xs = flip map xs $ \x ->
 
 
 -- TODO: diese Funktion muss nochmal implemtiert werden
--- die Kraftwirkung jeder einzige Kugel zu den anderen in einer Sphere Gruppe
+-- | die Kraftwirkung (Beschleunigungswirkung) jeder einzige Kugel
+--   zun den anderen in einer Sphere-Gruppe
 newSpeeds :: Double -> [Sphere] -> [Sphere]
 newSpeeds _ [] = []
 newSpeeds g xs = flip map xs $ \x ->
@@ -65,7 +67,7 @@ newSpeeds g xs = flip map xs $ \x ->
          in x { xSpeed = xSpeed x + dVx, ySpeed = ySpeed x + dVy}
 
 
--- die Lage jeder Kugel neu zu rechnen
+-- | Die neue Lage jeder Kugel aus einer Gruppe neu zu rechnen
 newCoords :: [Sphere]-> [Sphere]
 newCoords ss = flip map (ss) $ \s ->
     let   x  = xCoord s
@@ -74,7 +76,7 @@ newCoords ss = flip map (ss) $ \s ->
           vy = ySpeed s
     in s {xCoord = x + vx, yCoord = y + vy}
 
--- einzel Kugel zu zeichnen
+-- | Einzele Kugel zu zeichnen
 drawSphere :: Sphere -> Render()
 drawSphere s = do -- Render Monad
         let (r, g, b) = colorRGB s
