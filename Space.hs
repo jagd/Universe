@@ -11,7 +11,7 @@ import Sphere
 timePerTick :: Int
 timePerTick = 10
 
-data SpaceStatus = SSRunning | SSCrashed | SSReady | SSPause
+data SpaceStatus = SSRunning | SSCrashed | SSReady
      deriving (Show, Eq)
 
 data Space = Space {
@@ -25,7 +25,7 @@ data Space = Space {
 
 initSpace :: Space
 initSpace = Space {
-                     sStatus = SSRunning,
+                     sStatus = SSReady,
                      sController = mouse,
                      gravity = 0.007,
                      -- sSpheres = [s1, s2, s3, s4, s5],
@@ -69,8 +69,12 @@ drawSpace space width height = do -- IO Monad
         let balls = sSpheres space
         let c = sController space
         let render = flip map (c:balls) drawSphere
-        
-        return $ foldl' (>>) startDraw render >> drawTime >> drawStatus >> endDraw
+
+        return $ foldl' (>>) startDraw
+                             render
+                             >> drawTime
+                             >> drawStatus
+                             >> endDraw
         where startDraw = do save >> scale width height
               endDraw   = stroke >> restore
               drawTime  = do
@@ -95,16 +99,29 @@ drawSpace space width height = do -- IO Monad
                            setFontSize 0.04
                            moveTo 0.2 0.6
                            showText "click anywhere to restart"
+                       SSReady -> do
+                           setSourceRGBA 0 0 0 0.5
+                           rectangle 0 0 1 1
+                           fill
+                           setSourceRGB 1 0 0
+                           setFontSize 0.09
+                           moveTo 0.3 0.4
+                           showText "Ready ?"
+                           --
+                           setSourceRGB 1 1 0
+                           setFontSize 0.04
+                           moveTo 0.3 0.6
+                           showText "click anywhere to start"
                        _ -> return ()
-                         
+
 
 
 -- Spheres für Debugzweck
 
 mouse = Sphere {
      colorRGB = (1, 1, 1),
-     xCoord = 0.5,
-     yCoord = 0.7,
+     xCoord = -2,
+     yCoord = -2,
      radius = 0.03,
      xSpeed = 0.004,
      ySpeed = -0.00,

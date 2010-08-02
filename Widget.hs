@@ -19,32 +19,21 @@ main= do
                  containerBorderWidth := 5,
                  containerChild := canvas
                  ]
-
-
      widgetModifyBg canvas StateNormal (Color 0 0 0)
      widgetShowAll window
-
-     global <- newIORef initSpace
-
-     onExpose canvas (\x -> doExpose canvas global)
-
-     enableTimer canvas global
-
-     onButtonPress canvas (\x -> do
-                   status <- sStatus `liftM` readIORef global
-                   case status of
-                        SSCrashed -> do
-                                     writeIORef global initSpace
-                                     enableTimer canvas global
-                                     return ()
-                        otherwise -> return()
-                   return True
-                   )
-
+     -------------
+     -- Events: --
+     -------------
+     refSpace <- newIORef initSpace
+     onExpose canvas (\x -> doExpose canvas refSpace >> return True)
+     onButtonPress canvas (\x -> doClick canvas refSpace >> return True)
      onDestroy window mainQuit
+     -------------
      mainGUI
 
-enableTimer canvas global =
+
+startSpace :: (WidgetClass w) => w -> IORef Space -> IO ()
+startSpace canvas refSpace = do
             flip timeoutAdd timePerTick $ do
                 (wWidth, wHeight) <- widgetGetSize canvas
                 (mX, mY) <- widgetGetPointer canvas
@@ -52,12 +41,31 @@ enableTimer canvas global =
                         (realToFrac wWidth, realToFrac wHeight)
                 let (mX', mY') =
                         (realToFrac mX, realToFrac mY)
-                updateController (mX' / wWidth') (mY' / wHeight') global
-                spaceNext global
+                updateController (mX' / wWidth') (mY' / wHeight') refSpace
+                spaceNext refSpace
                 widgetQueueDraw canvas
-                ((== SSRunning) . sStatus) `liftM` readIORef global
+                ((== SSRunning) . sStatus) `liftM` readIORef refSpace
+            return ()
 
-doExpose :: (WidgetClass w) => w -> IORef Space -> IO Bool
+
+doClick :: (WidgetClass w) => w -> IORef Space -> IO ()
+doClick canvas refSpace = do
+        status <- sStatus `liftM` readIORef refSpace
+        case status of
+             SSCrashed -> do
+                          writeIORef refSpace
+                                     initSpace {sStatus = SSRunning}
+                          startSpace canvas refSpace
+                          return ()
+             SSReady   -> do
+                          writeIORef refSpace
+                                     initSpace {sStatus = SSRunning}
+                          startSpace canvas refSpace
+                          return ()
+             otherwise -> return()
+ 
+
+doExpose :: (WidgetClass w) => w -> IORef Space -> IO ()
 doExpose widget refSpace = do -- IO Monad
       space <- readIORef refSpace
       drawWindow <- widgetGetDrawWindow widget
@@ -66,4 +74,3 @@ doExpose widget refSpace = do -- IO Monad
       -- ruf `drawSpace` vom Modul Space auf
       render <- drawSpace space fW fH
       renderWithDrawable drawWindow render
-      return True
