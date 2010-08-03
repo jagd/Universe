@@ -104,12 +104,13 @@ drawSphere s = do -- Render Monad
 outBound :: [Sphere] -> Bool
 outBound xs = flip any xs $ \s ->
     let (x,y) = (xCoord s, yCoord s)
-    in f x y
-    where f x y
-            | x <= 0 = True
-            | x >= 1 = True
-            | y <= 0 = True
-            | y >= 1 = True
+        r = radius s
+    in f x y r
+    where f x y r
+            | x - r < 0 = True
+            | x + r > 1 = True
+            | y - r < 0 = True
+            | y + r > 1 = True
             | otherwise = False
 
 

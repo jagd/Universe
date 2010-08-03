@@ -15,8 +15,8 @@ main= do
      window <- windowNew
      canvas <- drawingAreaNew
      set window [windowTitle := "The Space",
-                 windowDefaultWidth := 600,
-                 windowDefaultHeight := 600,
+                 windowDefaultWidth := 550,
+                 windowDefaultHeight := 550,
                  containerBorderWidth := 5,
                  containerChild := canvas
                  ]

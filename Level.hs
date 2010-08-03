@@ -24,7 +24,7 @@ saveLevelNum :: Int -> IO ()
 saveLevelNum n = writeFile savedGamePath $ show n
 
 loadLevelData :: IO Level
-loadLevelData = return buildinMaps
+loadLevelData = return builtinMaps
 
 levelToSpace :: Level -> Int -> Space
 levelToSpace l n
@@ -36,7 +36,7 @@ levelToSpace l n
 
 
 
-buildinMaps = [l1, l2, l3, lEnd]
+builtinMaps = [l1, l2, l3, l4, lEnd]
 
 defaultCursor = Sphere {
      colorRGB = (1, 1, 1),
@@ -58,7 +58,7 @@ lEnd = errorSpace 0.04 "no more levels, wait for your idea ^^"
 ----------------------------------------
 
 l1 = Space {
-       sStatus = SSInfo 0.09 "Level 1" SSReady,
+       sStatus = SSInfo 0.09 "Level 1 - Warming up" SSReady,
        sController = defaultCursor,
        gravity = 0.007,
        sSpheres = [l1s1],
@@ -80,7 +80,7 @@ l1s1 = Sphere {
 ----------------------------------------
 
 l2 = Space {
-       sStatus = SSInfo 0.09 "Level 2" SSReady,
+       sStatus = SSInfo 0.09 "Level 2 - Bigger" SSReady,
        sController = defaultCursor,
        gravity = 0.007,
        sSpheres = [l2s1],
@@ -98,18 +98,50 @@ l2s1 = Sphere {
 }
 
 ----------------------------------------
---   Level 2
+--   Level 3
 ----------------------------------------
 
 l3 = Space {
-       sStatus = SSInfo 0.09 "Level 3 - more gravity" SSReady,
-       sController = l3cursor,
-       gravity = 0.3,
+       sStatus = SSInfo 0.09 "Level 3 - Two Stars" SSReady,
+       sController = defaultCursor,
+       gravity = 0.007,
        sSpheres = [l3s1, l3s2],
        sTime = 20000
      }
 
-l3cursor = Sphere {
+l3s1 = Sphere {
+     colorRGB = (1, 0, 1),
+     xCoord = 0.7,
+     yCoord = 0.5,
+     radius = 0.015,
+     xSpeed = -0.00,
+     ySpeed = 0.001,
+     mass   = 0.01^3
+}
+
+l3s2 = Sphere {
+     colorRGB = (1, 1, 0),
+     xCoord = 0.3,
+     yCoord = 0.5,
+     radius = 0.015,
+     xSpeed = -0.00,
+     ySpeed = 0.001,
+     mass   = 0.015^3
+}
+
+----------------------------------------
+--   Level 4
+----------------------------------------
+
+l4 = Space {
+       sStatus = SSInfo 0.09 "Level 4 - more gravity" SSReady,
+       sController = l4cursor,
+       gravity = 0.3,
+       sSpheres = [l4s1, l4s2],
+       sTime = 15000
+     }
+
+l4cursor = Sphere {
      colorRGB = (1, 1, 1),
      xCoord = 10,
      yCoord = 10,
@@ -119,22 +151,22 @@ l3cursor = Sphere {
      mass   = 0.02^3 -- könnte ein bisschen größer sein
 }
 
-l3s1 = Sphere {
+l4s1 = Sphere {
      colorRGB = (1, 0, 1),
      xCoord = 0.5,
      yCoord = 0.3,
      radius = 0.015,
-     xSpeed = -0.004,
+     xSpeed = -0.003,
      ySpeed = 0.00,
      mass   = 0.015^3
 }
 
-l3s2 = Sphere {
+l4s2 = Sphere {
      colorRGB = (62/255, 224/255, 205/255),
      xCoord = 0.5,
      yCoord = 0.7,
      radius = 0.015,
-     xSpeed = 0.004,
+     xSpeed = 0.003,
      ySpeed = -0.000,
      mass   = 0.015^3
 }
