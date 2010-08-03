@@ -1,6 +1,5 @@
 module Space where
 
-import Data.IORef
 import Data.List
 import Control.Monad
 
@@ -61,29 +60,27 @@ updateController x y s =
         in s {sController = c'}
 
 
-spaceNext :: IORef Space -> IO ()
-spaceNext refSpace = do
-    status <- sStatus `liftM` readIORef refSpace
-    if ( status == SSRunning )
-      then do
-           modifyIORef refSpace $ \space ->
-               let g = gravity space
-                   timeLeft = sTime space - timePerTick
-               in space {
-                   sSpheres = (newSpeeds1 g $ sController space)
-                                 . newSpeeds g
-                                 . newCoords
-                                 $ (sSpheres space),
-                   sTime = if timeLeft > 0 then timeLeft else 0
-                  }
-           space <- readIORef refSpace
-           let spheres = sSpheres space
-           let c = sController space
-           when (sTime space <= 0) $
-                modifyIORef refSpace $ \s -> s {sStatus = SSDone}
-           when (outBound spheres || collision (c:spheres)) $
-                modifyIORef refSpace $ \s -> s {sStatus = SSCrashed}
-      else return ()
+spaceNext :: Space -> Space
+spaceNext space
+        | sStatus space == SSRunning =
+             let g = gravity space
+                 timeLeft = sTime space - timePerTick
+                 s' = space {
+                       sSpheres = (newSpeeds1 g $ sController space)
+                                   . newSpeeds g
+                                   . newCoords
+                                   $ (sSpheres space),
+                       sTime = if timeLeft > 0 then timeLeft else 0
+                      }
+                 spheres = sSpheres s'
+                 c = sController s'
+                 s'' = if sTime space <= 0
+                         then s' {sStatus = SSDone}
+                         else s'
+             in if outBound spheres || collision (c:spheres)
+               then s'' {sStatus = SSCrashed}
+               else s''
+        | otherwise = space
 
 drawSpace :: Space -> Double -> Double -> Render ()
 drawSpace space width height =
@@ -153,9 +150,4 @@ drawSpace space width height =
                            setFontSize fs
                            moveTo 0.3 0.4
                            showText msg
-                           --
-                           -- setSourceRGB 1 1 0
-                           -- setFontSize 0.04
-                           -- moveTo 0.35 0.6
-                           -- showText "click to continue"
                        _ -> return ()

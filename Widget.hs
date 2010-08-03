@@ -53,8 +53,8 @@ startSpace canvas refSpace = do
                 let (mX', mY') =
                         (realToFrac mX, realToFrac mY)
                 modifyIORef refSpace $ \s ->
-                    updateController (mX' / wWidth') (mY' / wHeight') s
-                spaceNext refSpace
+                        spaceNext $
+                        updateController (mX' / wWidth') (mY' / wHeight') s
                 widgetQueueDraw canvas
                 ((== SSRunning) . sStatus) `liftM` readIORef refSpace
             return ()
