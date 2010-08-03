@@ -7,6 +7,7 @@ import Graphics.UI.Gtk
 import Graphics.Rendering.Cairo
 
 import Space
+import Level
 
 main :: IO ()
 main= do
@@ -21,12 +22,22 @@ main= do
                  ]
      widgetModifyBg canvas StateNormal (Color 0 0 0)
      widgetShowAll window
+
+     ---------------
+     -- Data Init --
+     ---------------
+
+     levels <- loadLevelData
+     n      <- loadLevelNum 
+     refLevelNum <- newIORef n
+     refSpace <- newIORef $ levelToSpace levels n
+
      -------------
      -- Events: --
      -------------
-     refSpace <- newIORef initSpace
      onExpose canvas (\x -> doExpose canvas refSpace >> return True)
-     onButtonPress canvas (\x -> doClick canvas refSpace >> return True)
+     onButtonPress canvas (\x -> doClick canvas refSpace levels refLevelNum
+                                 >> return True)
      onDestroy window mainQuit
      -------------
      mainGUI
@@ -41,27 +52,42 @@ startSpace canvas refSpace = do
                         (realToFrac wWidth, realToFrac wHeight)
                 let (mX', mY') =
                         (realToFrac mX, realToFrac mY)
-                updateController (mX' / wWidth') (mY' / wHeight') refSpace
+                modifyIORef refSpace $ \s ->
+                    updateController (mX' / wWidth') (mY' / wHeight') s
                 spaceNext refSpace
                 widgetQueueDraw canvas
                 ((== SSRunning) . sStatus) `liftM` readIORef refSpace
             return ()
 
 
-doClick :: (WidgetClass w) => w -> IORef Space -> IO ()
-doClick canvas refSpace = do
+doClick :: (WidgetClass w) => w -> IORef Space -> Level -> IORef Int -> IO ()
+doClick canvas refSpace levels refNum = do
         status <- sStatus `liftM` readIORef refSpace
+        n <- readIORef refNum
         case status of
              SSCrashed -> do
-                          writeIORef refSpace
-                                     initSpace {sStatus = SSRunning}
-                          startSpace canvas refSpace
-                          return ()
+                    let reload = levelToSpace levels n
+                    -- wäre es besser, wie folgt zu tun ?
+                    -- writeIORef refSpace reload {sStatus = SSRunning}
+                    -- startSpace canvas refSpace
+                    writeIORef refSpace reload {sStatus = SSReady}
+                    widgetQueueDraw canvas
              SSReady   -> do
-                          writeIORef refSpace
-                                     initSpace {sStatus = SSRunning}
-                          startSpace canvas refSpace
-                          return ()
+                    modifyIORef refSpace $ \s ->
+                           s {sStatus = SSRunning}
+                    startSpace canvas refSpace
+
+             SSDone   -> do
+                    writeIORef refSpace $ levelToSpace levels (n + 1)
+                    print n
+                    writeIORef refNum (n + 1)
+                    saveLevelNum $ n + 1
+                    widgetQueueDraw canvas
+
+             SSInfo _ _ next -> do
+                    modifyIORef refSpace $ \s -> s {sStatus = next}
+                    widgetQueueDraw canvas
+
              otherwise -> return()
  
 

@@ -11,8 +11,16 @@ import Sphere
 timePerTick :: Int
 timePerTick = 10
 
-data SpaceStatus = SSRunning | SSCrashed | SSReady
+
+
+data SpaceStatus = SSRunning
+                 | SSCrashed
+                 | SSReady
+                 | SSDone
+                 | SSInfo Double String SpaceStatus
+                   --   FontSize Message NextStatus
      deriving (Show, Eq)
+
 
 data Space = Space {
            sStatus     :: SpaceStatus,
@@ -23,22 +31,34 @@ data Space = Space {
      } deriving (Show)
 
 
-initSpace :: Space
-initSpace = Space {
-                     sStatus = SSReady,
-                     sController = mouse,
-                     gravity = 0.007,
-                     -- sSpheres = [s1, s2, s3, s4, s5],
-                     sSpheres = [s4, s5],
-                     sTime = 0
-                     }
+-- einige merkwürdige Spaces
+
+infinitInfoStatus fs msg = SSInfo fs msg $ infinitInfoStatus fs msg
+
+errorSpace fs msg = Space {
+       sStatus = infinitInfoStatus fs msg,
+       sController = Sphere {
+                         colorRGB = (1, 1, 1),
+                         xCoord = -2,
+                         yCoord = -2,
+                         radius = 0.03,
+                         xSpeed = 0,
+                         ySpeed = 0,
+                         mass   = 0
+                      },
+       gravity = 0.000,
+       sSpheres = [],
+       sTime = 1000
+}
 
 
-updateController :: Double -> Double -> IORef Space -> IO ()
-updateController x y space = modifyIORef space $ \s ->
-                 let c = sController s
-                     c' = c {xCoord = x, yCoord = y}
-                 in s {sController = c'}
+-- Space Manipulation
+
+updateController :: Double -> Double -> Space -> Space
+updateController x y s =
+        let c = sController s
+            c' = c {xCoord = x, yCoord = y}
+        in s {sController = c'}
 
 
 spaceNext :: IORef Space -> IO ()
@@ -48,22 +68,24 @@ spaceNext refSpace = do
       then do
            modifyIORef refSpace $ \space ->
                let g = gravity space
+                   timeLeft = sTime space - timePerTick
                in space {
                    sSpheres = (newSpeeds1 g $ sController space)
                                  . newSpeeds g
                                  . newCoords
                                  $ (sSpheres space),
-                   sTime = sTime space + timePerTick
+                   sTime = if timeLeft > 0 then timeLeft else 0
                   }
            space <- readIORef refSpace
            let spheres = sSpheres space
            let c = sController space
+           when (sTime space <= 0) $
+                modifyIORef refSpace $ \s -> s {sStatus = SSDone}
            when (outBound spheres || collision (c:spheres)) $
                 modifyIORef refSpace $ \s -> s {sStatus = SSCrashed}
-
       else return ()
 
-
+-- TODO:   entfernen die IO schicht
 drawSpace :: Space -> Double -> Double -> IO (Render ())
 drawSpace space width height = do -- IO Monad
         let balls = sSpheres space
@@ -78,12 +100,12 @@ drawSpace space width height = do -- IO Monad
         where startDraw = do save >> scale width height
               endDraw   = stroke >> restore
               drawTime  = do
-                        setSourceRGB 1 1 0
+                        setSourceRGB 0 1 0
                         setFontSize 0.04
                         moveTo 0.01 0.05
                         let milliSec = sTime space
                         let (sec, csec) = (milliSec `div` 100) `divMod` 10
-                        showText $ "Time  " ++ (show sec) ++ "." ++ (show $ csec)
+                        showText $ "Left Time  " ++ (show sec) ++ "." ++ (show $ csec)
               drawStatus =
                   case sStatus space of
                        SSCrashed -> do
@@ -112,69 +134,30 @@ drawSpace space width height = do -- IO Monad
                            setFontSize 0.04
                            moveTo 0.3 0.6
                            showText "click anywhere to start"
+                       SSDone -> do
+                           setSourceRGBA 0 0 0 0.5
+                           rectangle 0 0 1 1
+                           fill
+                           setSourceRGB 0 1 0
+                           setFontSize 0.09
+                           moveTo 0.3 0.4
+                           showText "Level Done"
+                           --
+                           setSourceRGB 1 1 0
+                           setFontSize 0.04
+                           moveTo 0.35 0.6
+                           showText "click to continue"
+                       SSInfo fs msg _ -> do
+                           setSourceRGBA 0 0 0 0.5
+                           rectangle 0 0 1 1
+                           fill
+                           setSourceRGB 0 1 0
+                           setFontSize fs
+                           moveTo 0.3 0.4
+                           showText msg
+                           --
+                           -- setSourceRGB 1 1 0
+                           -- setFontSize 0.04
+                           -- moveTo 0.35 0.6
+                           -- showText "click to continue"
                        _ -> return ()
-
-
-
--- Spheres für Debugzweck
-
-mouse = Sphere {
-     colorRGB = (1, 1, 1),
-     xCoord = -2,
-     yCoord = -2,
-     radius = 0.03,
-     xSpeed = 0.004,
-     ySpeed = -0.00,
-     mass   = 0.05^3 -- könnte ein bisschen größer sein
-}
-
-
-s1 = Sphere {
-     colorRGB = (1, 0, 0),
-     xCoord = 0.5,
-     yCoord = 0.5,
-     radius = 0.05,
-     xSpeed = -0.0009,
-     ySpeed = 0.000,
-     mass   = 0.05^3
-}
-
-s2 = Sphere {
-     colorRGB = (1, 1, 0.5),
-     xCoord = 0.5,
-     yCoord = 0.7,
-     radius = 0.03,
-     xSpeed = 0.004,
-     ySpeed = -0.00,
-     mass   = 0.03^3
-}
-
-s3 = Sphere {
-     colorRGB = (0, 0, 1),
-     xCoord = 0.5,
-     yCoord = 0.8,
-     radius = 0.005,
-     xSpeed = -0.006,
-     ySpeed = 0.001,
-     mass   = 0.005^3
-}
-
-s4 = Sphere {
-     colorRGB = (1, 0, 1),
-     xCoord = 0.7,
-     yCoord = 0.5,
-     radius = 0.01,
-     xSpeed = -0.00,
-     ySpeed = 0.001,
-     mass   = 0.01^3
-}
-
-s5 = Sphere {
-     colorRGB = (62/255, 224/255, 205/255),
-     xCoord = 0.7,
-     yCoord = 0.7,
-     radius = 0.01,
-     xSpeed = 0.001,
-     ySpeed = -0.0002,
-     mass   = 0.01^3
-}
