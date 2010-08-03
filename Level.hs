@@ -36,7 +36,7 @@ levelToSpace l n
 
 
 
-buildinMaps = [l1, l2, l3]
+buildinMaps = [l1, l2, l3, lEnd]
 
 defaultCursor = Sphere {
      colorRGB = (1, 1, 1),
@@ -47,6 +47,11 @@ defaultCursor = Sphere {
      ySpeed = 0,
      mass   = 0.05^3 -- könnte ein bisschen größer sein
 }
+
+----------------------------------------
+-- kein level mehr
+----------------------------------------
+lEnd = errorSpace 0.04 "no more levels, wait for your idea ^^"
 
 ----------------------------------------
 --   Level 1

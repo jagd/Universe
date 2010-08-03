@@ -98,5 +98,5 @@ doExpose widget refSpace = do -- IO Monad
       (nW, nH) <- widgetGetSize widget
       let (fW,fH) = (realToFrac nW, realToFrac nH)
       -- ruf `drawSpace` vom Modul Space auf
-      render <- drawSpace space fW fH
+      let render = drawSpace space fW fH
       renderWithDrawable drawWindow render

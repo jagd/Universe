@@ -48,7 +48,7 @@ errorSpace fs msg = Space {
                       },
        gravity = 0.000,
        sSpheres = [],
-       sTime = 1000
+       sTime = 1
 }
 
 
@@ -85,14 +85,12 @@ spaceNext refSpace = do
                 modifyIORef refSpace $ \s -> s {sStatus = SSCrashed}
       else return ()
 
--- TODO:   entfernen die IO schicht
-drawSpace :: Space -> Double -> Double -> IO (Render ())
-drawSpace space width height = do -- IO Monad
+drawSpace :: Space -> Double -> Double -> Render ()
+drawSpace space width height =
         let balls = sSpheres space
-        let c = sController space
-        let render = flip map (c:balls) drawSphere
-
-        return $ foldl' (>>) startDraw
+            c = sController space
+            render = flip map (c:balls) drawSphere
+        in foldl' (>>) startDraw
                              render
                              >> drawTime
                              >> drawStatus
