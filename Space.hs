@@ -92,8 +92,19 @@ drawSpace space width height =
                              >> drawTime
                              >> drawStatus
                              >> endDraw
-        where startDraw = do save >> scale width height
+        where textCenter msg = do -- Render Monad
+                  -- kann `scale` nicht nutzen
+                  -- besonders im Fall, einzel Zeichen darzustellen
+                  box <- textExtents msg
+                  let w = textExtentsWidth box
+                      h = textExtentsHeight box
+                  moveTo ((1-w)/2) ((1-h)/2)
+                  showText msg
+
+              startDraw = do save >> scale width height
+
               endDraw   = stroke >> restore
+
               drawTime  = do
                         setSourceRGB 0 1 0
                         setFontSize 0.04
@@ -109,12 +120,11 @@ drawSpace space width height =
                            fill
                            setSourceRGB 1 0 0
                            setFontSize 0.07
-                           moveTo 0.1 0.5
-                           showText "The Universe Crashed !"
+                           textCenter "The Universe Crashed !"
                            --
                            setSourceRGB 1 1 0
                            setFontSize 0.04
-                           moveTo 0.2 0.6
+                           moveTo 0.25 0.6
                            showText "click anywhere to restart"
                        SSReady -> do
                            setSourceRGBA 0 0 0 0.5
@@ -122,8 +132,7 @@ drawSpace space width height =
                            fill
                            setSourceRGB 1 0 0
                            setFontSize 0.09
-                           moveTo 0.3 0.4
-                           showText "Ready ?"
+                           textCenter "Ready ?"
                            --
                            setSourceRGB 1 1 0
                            setFontSize 0.04
@@ -135,8 +144,7 @@ drawSpace space width height =
                            fill
                            setSourceRGB 0 1 0
                            setFontSize 0.09
-                           moveTo 0.3 0.4
-                           showText "Level Done"
+                           textCenter "Level Done"
                            --
                            setSourceRGB 1 1 0
                            setFontSize 0.04
@@ -148,6 +156,5 @@ drawSpace space width height =
                            fill
                            setSourceRGB 0 1 0
                            setFontSize fs
-                           moveTo 0.3 0.4
-                           showText msg
+                           textCenter msg
                        _ -> return ()

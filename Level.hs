@@ -84,7 +84,7 @@ l2 = Space {
        sController = defaultCursor,
        gravity = 0.007,
        sSpheres = [l2s1],
-       sTime = 10000
+       sTime = 15000
      }
 
 l2s1 = Sphere {
@@ -92,8 +92,8 @@ l2s1 = Sphere {
      xCoord = 0.5,
      yCoord = 0.5,
      radius = 0.05,
-     xSpeed = -0.0009,
-     ySpeed = 0.000,
+     xSpeed = -0.003,
+     ySpeed = 0.003,
      mass   = 0.05^3
 }
 
@@ -102,11 +102,11 @@ l2s1 = Sphere {
 ----------------------------------------
 
 l3 = Space {
-       sStatus = SSInfo 0.09 "Level 3" SSReady,
+       sStatus = SSInfo 0.09 "Level 3 - more gravity" SSReady,
        sController = l3cursor,
        gravity = 0.3,
        sSpheres = [l3s1, l3s2],
-       sTime = 10000
+       sTime = 20000
      }
 
 l3cursor = Sphere {
@@ -122,9 +122,9 @@ l3cursor = Sphere {
 l3s1 = Sphere {
      colorRGB = (1, 0, 1),
      xCoord = 0.5,
-     yCoord = 0.4,
+     yCoord = 0.3,
      radius = 0.015,
-     xSpeed = -0.002,
+     xSpeed = -0.004,
      ySpeed = 0.00,
      mass   = 0.015^3
 }
@@ -132,9 +132,9 @@ l3s1 = Sphere {
 l3s2 = Sphere {
      colorRGB = (62/255, 224/255, 205/255),
      xCoord = 0.5,
-     yCoord = 0.6,
+     yCoord = 0.7,
      radius = 0.015,
-     xSpeed = 0.002,
+     xSpeed = 0.004,
      ySpeed = -0.000,
      mass   = 0.015^3
 }
