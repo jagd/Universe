@@ -79,7 +79,6 @@ doClick canvas refSpace levels refNum = do
 
              SSDone   -> do
                     writeIORef refSpace $ levelToSpace levels (n + 1)
-                    print n
                     writeIORef refNum (n + 1)
                     saveLevelNum $ n + 1
                     widgetQueueDraw canvas
